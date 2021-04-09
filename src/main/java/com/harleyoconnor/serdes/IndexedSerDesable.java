@@ -23,7 +23,7 @@ public abstract class IndexedSerDesable<T extends IndexedSerDesable<T>> extends 
     protected final int id;
 
     public IndexedSerDesable(final Database database) {
-        this.id = database.getMaxUnsafe(this.getSerDes().getTable(), this.getPrimaryField().getName());
+        this.id = database.getMaxOrDefault(this.getSerDes().getTable(), this.getPrimaryField().getName(), 1) + 1;
     }
 
     public IndexedSerDesable(int id) {

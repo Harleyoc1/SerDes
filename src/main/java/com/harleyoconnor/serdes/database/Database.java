@@ -3,7 +3,6 @@ package com.harleyoconnor.serdes.database;
 import com.harleyoconnor.serdes.exception.NoSuchRowException;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,11 +19,9 @@ import java.util.stream.Collectors;
 public class Database {
 
     private final Connection connection;
-    private String currentSchema;
 
-    public Database(Connection connection, String initialSchema) {
+    public Database(Connection connection) {
         this.connection = connection;
-        this.currentSchema = initialSchema;
     }
 
     /**
@@ -34,27 +31,6 @@ public class Database {
      */
     public Connection getConnection() {
         return this.connection;
-    }
-
-    /**
-     * Gets the {@link #currentSchema} for this {@link Database}.
-     *
-     * @return The {@link #currentSchema}.
-     */
-    public String getCurrentSchema() {
-        return this.currentSchema;
-    }
-
-    /**
-     * Sets the {@link #currentSchema} this {@link Database} reads from and
-     * writes to.
-     *
-     * @param currentSchema The {@code schema} to set.
-     * @return This {@link Database} for chaining.
-     */
-    public Database setCurrentSchema(String currentSchema) {
-        this.currentSchema = currentSchema;
-        return this;
     }
 
     public ResultSet select(String table, String valueName, Object value) throws SQLException {
@@ -137,7 +113,7 @@ public class Database {
         }
     }
 
-    public int getMaxUnsafe(final String table, final String fieldName) {
+    public int getMaxUnchecked(final String table, final String fieldName) {
         try {
             return this.getMax(table, fieldName);
         } catch (final SQLException e) {
