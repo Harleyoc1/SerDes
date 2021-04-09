@@ -1,5 +1,5 @@
 # SerDes
-An API for serialisation and deserialisation to and from SQL table and Java objects. Currently, it is in early stages of development and testing, and does not have any documentation as of yet.
+An API for serialisation and deserialisation to and from an SQL table and a Java object. Currently, it is in early stages of development and testing, and does not have any documentation as of yet.
 
 Note that this is built on and expects to run on `Java 16` (and by hence you will also need `Gradle 7`)!
 
