@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-//    id 'maven'
+    id 'maven-publish'
 }
 
 ext.configFile = file "gradle.properties"
@@ -17,6 +17,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 repositories {
     mavenCentral()
+    mavenLocal()
 
     maven {
         name 'Harley O\'Connor Maven'
@@ -37,25 +38,39 @@ test {
     useJUnitPlatform()
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier.set('sources')
-    from sourceSets.main.allSource
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-//task writeNewPom {
-//    doLast {
-//        pom {
-//            project {
-//                groupId config.package_group
-//                artifactId config.name
-//                version config.version
-//            }
-//        }.writeTo("build/libs/${config.name}-${config.version}.pom")
-//    }
-//}
-//
-//jar.finalizedBy('writeNewPom')
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = config.name
 
-artifacts {
-    archives sourcesJar
+            from components.java
+
+            pom {
+                url = "https://github.com/Harleyoc1/${config.name}"
+                licenses {
+                    license {
+                        name = 'MIT'
+                        url = 'https://mit-license.org'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'harleyoconnor'
+                        name = 'Harley O\'Connor'
+                        email = 'harleyoc1@gmail.com'
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://github.com/Harleyoc1/${config.name}.git"
+                    developerConnection = "scm:git:ssh://github.com/Harleyoc1/${config.name}.git"
+                    url = "https://github.com/Harleyoc1/${config.name}"
+                }
+            }
+        }
+    }
 }
