@@ -11,6 +11,7 @@ import java.util.Objects;
  *
  * @param <T> The extending {@link Class} type of this.
  * @param <PK> The {@code primary key} type.
+ *
  * @author Harley O'Connor
  * @see SerDesable
  */
@@ -35,6 +36,7 @@ public abstract class AbstractSerDesable<T extends AbstractSerDesable<T, PK>, PK
         if (this.getSerDes() != otherSerDesable.getSerDes())
             return false;
 
+        // Check all field values are equal.
         for (final Field<T, ?> field : this.getSerDes().getFields()) {
             if (!Objects.equals(field.get((T) this), field.get((T) otherSerDesable))) {
                 return false;
@@ -47,7 +49,8 @@ public abstract class AbstractSerDesable<T extends AbstractSerDesable<T, PK>, PK
     @Override
     public int hashCode() {
         return Objects.hash(this.getSerDes().getFields().stream()
-                .filter(field -> !(field instanceof ForeignField && ((ForeignField<T, ?, ?>) field).getActual((T) this) == null))
+                .filter(field -> !(field instanceof ForeignField &&
+                        ((ForeignField<T, ?, ?>) field).getActual((T) this) == null))
                 .map(field -> field.get((T) this)).toArray());
     }
 

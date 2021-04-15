@@ -4,8 +4,6 @@ import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.field.*;
 
 import java.sql.ResultSet;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -74,7 +72,9 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      * @return A {@link Set} of {@link MutableField} objects for this {@link SerDes}.
      */
     default Set<Field<T, ?>> getMutableFields() {
-        return this.getFields().stream().filter(Field::isMutable).collect(Collectors.toSet());
+        return this.getFields().stream()
+                .filter(Field::isMutable)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -83,7 +83,9 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      * @return A {@link Set} of {@link ImmutableField} objects for this {@link SerDes}.
      */
     default Set<Field<T, ?>> getImmutableFields() {
-        return this.getFields().stream().filter(field -> !field.isMutable()).collect(Collectors.toSet());
+        return this.getFields().stream()
+                .filter(field -> !field.isMutable())
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -93,7 +95,10 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      */
     @SuppressWarnings("unchecked")
     default Set<ForeignField<T, ?, ?>> getForeignFields() {
-        return this.getFields().stream().filter(field -> field instanceof ForeignField).map(field -> ((ForeignField<T, ?, ?>) field)).collect(Collectors.toSet());
+        return this.getFields().stream()
+                .filter(field -> field instanceof ForeignField)
+                .map(field -> ((ForeignField<T, ?, ?>) field))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -128,7 +133,8 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      * {@link Consumer#accept(Object)} called once the next {@link Object}
      * has finished deserialising.
      *
-     * @param deserialisationResultConsumer The {@link Consumer} of type {@link T} to run after deserialisation is finished.
+     * @param deserialisationResultConsumer The {@link Consumer} of type {@link T} to
+     *                                      run after deserialisation is finished.
      */
     void whenNextDeserialised (Consumer<T> deserialisationResultConsumer);
 
@@ -137,7 +143,8 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      * and gives the {@link ResultSet} obtained to {@link #deserialise(Database, ResultSet)}.
      *
      * @param database The {@link Database} to deserialise from.
-     * @param primaryKeyValue The value of the {@code primary key} for the object to deserialise.
+     * @param primaryKeyValue The value of the {@code primary key} for the object to
+     *                        deserialise.
      * @return The deserialised {@link Object} of type {@link T}.
      */
     default T deserialise (final Database database, final PK primaryKeyValue) {
@@ -163,19 +170,31 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
     T deserialise (final Database database, final ResultSet resultSet, final boolean careful);
 
     /**
-     * A careful version of {@link #deserialise(Database, ResultSet)} which doesn't set
-     * {@link ForeignField} objects until after their {@link SerDes} is finished
-     * deserialising.
+     * Creates the SQL {@code table} for this {@link SerDes} in the specified
+     * {@link Database}.
      *
-     * <p>Note that this method will not check if the {@link ForeignField} object's
-     * {@link SerDes} is currently deserialising, that should be checked through its
-     * {@link #currentlyDeserialising()} method before calling this.</p>
+     * <p>Note that when creating a table this should be used with caution in order to
+     * avoid infinite loops whilst creating foreign key tables. This can be done by
+     * making sure it's not {@link #currentlyCreatingTable()}.</p>
      *
-     * @param database The {@link Database} to read from, if required.
-     * @param resultSet The {@link ResultSet} to deserialise from.
-     * @return The deserialised {@code object} of type {@link T}.
+     * <p>Generally, implementations should create a {@code boolean} to return in
+     * {@link #currentlyCreatingTable()} method, setting it to {@code true} at this method's
+     * {@code head} and {@code false} at {@code return}.</p>
+     *
+     * @param database The {@link Database} to create the {@code table} in.
      */
-    T deserialiseCareful(final Database database, final ResultSet resultSet);
+    void createTable(final Database database);
+
+    /**
+     * Returns whether or not this {@link SerDes} is currently creating a
+     * {@code table}. This should be checked whilst creating a table before
+     * calling {@link #createTable(Database)} in order to avoid an infinite loop
+     * whilst creating foreign key tables.
+     *
+     * @return {@code true} if an SQL {@code table} is currently being created for
+     *         this {@link SerDes}; {@code false} otherwise.
+     */
+    boolean currentlyCreatingTable();
 
     /**
      * Converts the given {@link SerDesable} of type {@link T} into a {@link String}

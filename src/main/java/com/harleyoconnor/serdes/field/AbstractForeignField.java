@@ -1,6 +1,5 @@
 package com.harleyoconnor.serdes.field;
 
-import com.harleyoconnor.serdes.SerDes;
 import com.harleyoconnor.serdes.SerDesRegistry;
 import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.database.Database;
@@ -30,8 +29,8 @@ public abstract class AbstractForeignField<P extends SerDesable<P, ?>, T, FKT ex
     private final Function<P, FKT> getter;
 
     @SuppressWarnings("all")
-    public AbstractForeignField(String name, Class<P> parentType, Field<FKT, T> foreignField, boolean unique, Function<P, FKT> getter) {
-        super(name, parentType, foreignField.getFieldType(), unique, null);
+    public AbstractForeignField(String name, Class<P> parentType, Field<FKT, T> foreignField, boolean unique, boolean nullable, Function<P, FKT> getter) {
+        super(name, parentType, foreignField.getType(), unique, nullable, null);
         this.foreignField = foreignField;
         this.getter = getter;
     }

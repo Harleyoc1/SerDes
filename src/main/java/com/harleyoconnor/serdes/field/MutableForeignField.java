@@ -26,8 +26,8 @@ public class MutableForeignField<P extends SerDesable<P, ?>, T, FKT extends SerD
     /** A {@link BiConsumer} setter for {@link T}. */
     private final BiConsumer<P, FKT> setter;
 
-    public MutableForeignField(String name, Class<P> parentType, Field<FKT, T> foreignField, boolean unique, Function<P, FKT> getter, BiConsumer<P, FKT> setter) {
-        super(name, parentType, foreignField, unique, getter);
+    public MutableForeignField(String name, Class<P> parentType, Field<FKT, T> foreignField, boolean unique, boolean nullable, Function<P, FKT> getter, BiConsumer<P, FKT> setter) {
+        super(name, parentType, foreignField, unique, nullable, getter);
         this.setter = setter;
     }
 

@@ -1,13 +1,16 @@
 package com.harleyoconnor.serdes.database;
 
+import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.exception.NoSuchRowException;
+import com.harleyoconnor.serdes.field.Field;
+import com.harleyoconnor.serdes.field.ForeignField;
+import com.harleyoconnor.serdes.field.PrimaryField;
+import com.harleyoconnor.serdes.util.DataTypeConversion;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -140,6 +143,61 @@ public class Database {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    public boolean tableExists(final String table){
+        try {
+            this.select("INFORMATION_SCHEMA.TABLES", "TABLE_NAME", table);
+        } catch (final NoSuchRowException e) {
+            return false;
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+
+    public <SD extends SerDesable<SD, PK>, PK> void createTable(final String name, final PrimaryField<SD, PK> primaryField, final LinkedHashSet<? extends Field<SD, ?>> fields) throws SQLException {
+        // Create and execute the statement.
+        this.executePreparedStatement("create table " + name + " (" +
+                fields.stream().map(field -> field.getSQLDeclaration() + ", ")
+                        .collect(Collectors.joining()) +
+                "primary key (" + primaryField.getName() + ")" + ")", Collections.emptyList());
+
+        // Create foreign tables and add their foreign key constraints.
+        for (final ForeignField<?, ?, ?> foreignField : fields.stream().filter(field -> field instanceof ForeignField<?, ?, ?>)
+                .map(field -> ((ForeignField<?, ?, ?>) field)).collect(Collectors.toList())) {
+            final var foreignSerDes = foreignField.getForeignField().getParentSerDes();
+
+            if (foreignSerDes.isEmpty())
+                continue;
+
+            if (!foreignSerDes.get().currentlyCreatingTable())
+                foreignSerDes.get().createTable(this);
+
+            this.addForeignConstraint(name, foreignField);
+        }
+    }
+
+    public <SD extends SerDesable<SD, PK>, PK> void createTableUnchecked(final String name, final PrimaryField<SD, PK> primaryField, final LinkedHashSet<? extends Field<SD, ?>> fields) {
+        try {
+            this.createTable(name, primaryField, fields);
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addForeignConstraint(final String table, final ForeignField<?, ?, ?> foreignField) throws SQLException {
+        this.executePreparedStatement("alter table " + table + " add constraint foreign key (" +
+                foreignField.getName() + ") references " + foreignField.getForeignField().getParentSerDes().get().getTable()
+                + "(" + foreignField.getForeignField().getName() + ")", Collections.emptyList());
+    }
+
+    public void addForeignConstraintUnchecked(final String table, final ForeignField<?, ?, ?> foreignField) {
+        try {
+            this.addForeignConstraint(table, foreignField);
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void executePreparedStatement(final String sqlQuery, final List<Object> args) throws SQLException {

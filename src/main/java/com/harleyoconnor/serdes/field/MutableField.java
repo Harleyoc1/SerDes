@@ -24,8 +24,8 @@ public class MutableField<P extends SerDesable<P, ?>, T> extends AbstractField<P
     /** A {@link BiConsumer} setter for {@link T}. */
     private final BiConsumer<P, T> setter;
 
-    public MutableField(String name, Class<P> parentType, Class<T> fieldType, boolean unqiue, Function<P, T> getter, BiConsumer<P, T> setter) {
-        super(name, parentType, fieldType, unqiue, getter);
+    public MutableField(String name, Class<P> parentType, Class<T> fieldType, boolean unique, boolean nullable, Function<P, T> getter, BiConsumer<P, T> setter) {
+        super(name, parentType, fieldType, unique, nullable, getter);
         this.setter = setter;
     }
 

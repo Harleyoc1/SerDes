@@ -16,7 +16,7 @@ import java.util.function.Function;
 public class PrimaryField<P extends SerDesable<P, ?>, T> extends ImmutableField<P, T> {
 
     public PrimaryField(String name, Class<P> parentType, Class<T> fieldType, Function<P, T> getter) {
-        super(name, parentType, fieldType, true, getter);
+        super(name, parentType, fieldType, true, false, getter);
     }
 
 }

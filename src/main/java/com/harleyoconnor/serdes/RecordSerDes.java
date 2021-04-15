@@ -4,6 +4,7 @@ import com.harleyoconnor.serdes.field.Field;
 import com.harleyoconnor.serdes.field.ImmutableField;
 import com.harleyoconnor.serdes.field.PrimaryField;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
  */
 public final class RecordSerDes<T extends Record & SerDesable<T, PK>, PK> extends AbstractSerDes<T, PK> {
 
-    private RecordSerDes(Class<T> type, String name, final PrimaryField<T, PK> primaryField, final Set<ImmutableField<T, ?>> fields) {
+    private RecordSerDes(Class<T> type, String name, final PrimaryField<T, PK> primaryField, final LinkedHashSet<ImmutableField<T, ?>> fields) {
         super(type, name, primaryField, fields);
     }
 

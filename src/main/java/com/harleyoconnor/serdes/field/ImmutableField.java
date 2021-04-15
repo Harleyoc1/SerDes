@@ -16,8 +16,8 @@ import java.util.function.Function;
  */
 public class ImmutableField<P extends SerDesable<P, ?>, T> extends AbstractField<P, T> {
 
-    public ImmutableField(String name, Class<P> parentType, Class<T> fieldType, boolean unique, Function<P, T> getter) {
-        super(name, parentType, fieldType, unique, getter);
+    public ImmutableField(String name, Class<P> parentType, Class<T> fieldType, boolean unique, boolean nullable, Function<P, T> getter) {
+        super(name, parentType, fieldType, unique, nullable, getter);
     }
 
 }

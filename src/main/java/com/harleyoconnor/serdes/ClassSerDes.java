@@ -6,6 +6,7 @@ import com.harleyoconnor.serdes.field.*;
 import com.harleyoconnor.serdes.util.ResultSetConversions;
 
 import java.sql.ResultSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -18,23 +19,30 @@ import java.util.function.Function;
  *
  * @param <T> The type for which this instance will handle serialisation and deserialisation.
  * @param <PK> The type of the primary field.
+ *
  * @author Harley O'Connor
  * @see SerDes
  * @see RecordSerDes
  */
 public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends AbstractSerDes<T, PK> {
 
-    private final ImmutableSet<Field<T, ?>> fields;
+    private final LinkedHashSet<Field<T, ?>> fields;
 
-    private ClassSerDes(final Class<T> type, final String table, final PrimaryField<T, PK> primaryField, final Set<Field<T, ?>> fields, final Set<ImmutableField<T, ?>> immutableFields) {
+    private ClassSerDes(final Class<T> type, final String table, final PrimaryField<T, PK> primaryField, final LinkedHashSet<Field<T, ?>> fields, final LinkedHashSet<ImmutableField<T, ?>> immutableFields) {
         super(type, table, primaryField, immutableFields);
-        fields.addAll(immutableFields);
-        this.fields = ImmutableSet.copyOf(fields);
+        this.fields = fields;
     }
 
     @Override
     public Set<Field<T, ?>> getFields() {
         return fields;
+    }
+
+    @Override
+    public void createTable(Database database) {
+        this.currentlyCreatingTable = true;
+        database.createTableUnchecked(this.table, this.primaryField, this.fields);
+        this.currentlyCreatingTable = false;
     }
 
     @Override
@@ -60,7 +68,7 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
     }
 
     private <V> void setField(final Database database, final ResultSet resultSet, final T object, final Field<T, V> field) {
-        field.set(database, object, ResultSetConversions.getValueUnsafe(resultSet, field.getName(), field.getFieldType()));
+        field.set(database, object, ResultSetConversions.getValueUnchecked(resultSet, field.getName(), field.getType()));
     }
 
     @SuppressWarnings("unchecked")
@@ -71,19 +79,27 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
         }
 
         public <FT> B field(final String name, final Class<FT> fieldType, final Function<T, FT> getter, final BiConsumer<T, FT> setter) {
-            return this.field(new MutableField<>(name, this.type, fieldType, false, getter, setter));
+            return this.field(new MutableField<>(name, this.type, fieldType, false, false, getter, setter));
         }
 
         public <FT> B uniqueField(final String name, final Class<FT> fieldType, final Function<T, FT> getter, final BiConsumer<T, FT> setter) {
-            return this.field(new MutableField<>(name, this.type, fieldType, true, getter, setter));
+            return this.field(new MutableField<>(name, this.type, fieldType, true, false, getter, setter));
+        }
+
+        public <FT> B nullableField(final String name, final Class<FT> fieldType, final Function<T, FT> getter, final BiConsumer<T, FT> setter) {
+            return this.field(new MutableField<>(name, this.type, fieldType, false, true, getter, setter));
         }
 
         public <FKT extends SerDesable<FKT, ?>, FT> B field(final String name, final Field<FKT, FT> foreignField, final Function<T, FKT> getter, final BiConsumer<T, FKT> setter) {
-            return this.field(new MutableForeignField<>(name, this.type, foreignField, false, getter, setter));
+            return this.field(new MutableForeignField<>(name, this.type, foreignField, false, false, getter, setter));
         }
 
         public <FKT extends SerDesable<FKT, ?>, FT> B uniqueField(final String name, final Field<FKT, FT> foreignField, final Function<T, FKT> getter, final BiConsumer<T, FKT> setter) {
-            return this.field(new MutableForeignField<>(name, this.type, foreignField, true, getter, setter));
+            return this.field(new MutableForeignField<>(name, this.type, foreignField, true, false, getter, setter));
+        }
+
+        public <FKT extends SerDesable<FKT, ?>, FT> B nullableField(final String name, final Field<FKT, FT> foreignField, final Function<T, FKT> getter, final BiConsumer<T, FKT> setter) {
+            return this.field(new MutableForeignField<>(name, this.type, foreignField, false, true, getter, setter));
         }
 
         @Override

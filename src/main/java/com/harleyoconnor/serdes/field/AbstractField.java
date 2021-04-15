@@ -1,6 +1,7 @@
 package com.harleyoconnor.serdes.field;
 
 import com.harleyoconnor.serdes.SerDesable;
+import com.harleyoconnor.serdes.util.DataTypeConversion;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -26,14 +27,16 @@ public abstract class AbstractField<P extends SerDesable<P, ?>, T> implements Fi
     protected final Class<P> parentType;
     protected final Class<T> fieldType;
     protected final boolean unique;
+    protected final boolean nullable;
 
     protected final Function<P, T> getter;
 
-    public AbstractField(String name, Class<P> parentType, Class<T> fieldType, boolean unique, Function<P, T> getter) {
+    public AbstractField(String name, Class<P> parentType, Class<T> fieldType, boolean unique, boolean nullable, Function<P, T> getter) {
         this.name = name;
         this.parentType = parentType;
         this.fieldType = fieldType;
         this.unique = unique;
+        this.nullable = nullable;
         this.getter = getter;
     }
 
@@ -48,13 +51,28 @@ public abstract class AbstractField<P extends SerDesable<P, ?>, T> implements Fi
     }
 
     @Override
-    public Class<T> getFieldType() {
+    public Class<T> getType() {
         return this.fieldType;
     }
 
     @Override
     public boolean isUnique() {
         return this.unique;
+    }
+
+    @Override
+    public boolean isNullable() {
+        return this.nullable;
+    }
+
+    private static final String VAR_CHAR_MAX = "varchar(255)";
+
+    @Override
+    public String getSQLDataType() {
+        return DataTypeConversion.getFor(this.getType())
+                .map(DataTypeConversion::getSQLDeclaration)
+                .map(declaration -> this.isUnique() && this.getType() == String.class ? VAR_CHAR_MAX : declaration)
+                .orElse(this.isUnique() ? VAR_CHAR_MAX : "text");
     }
 
     @Override

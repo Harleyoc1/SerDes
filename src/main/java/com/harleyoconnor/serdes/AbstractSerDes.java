@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> The type for which this instance will handle serialisation and deserialisation.
  * @param <PK> The type of the primary field.
+ *
  * @author Harley O'Connor
  * @see SerDes
  * @see ClassSerDes
@@ -33,7 +34,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
     protected final String table;
     protected final PrimaryField<T, PK> primaryField;
 
-    protected final Set<ImmutableField<T, ?>> immutableFields;
+    protected final LinkedHashSet<ImmutableField<T, ?>> immutableFields;
 
     // TODO: A way of automatic unloading these (maybe add a WeakHashSet to JavaUtilities?)
     protected final Set<T> loadedObjects = new HashSet<>();
@@ -41,7 +42,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
     protected final List<Consumer<T>> nextDeserialisedResultConsumers = new ArrayList<>();
     private boolean currentlyDeserialising;
 
-    public AbstractSerDes(Class<T> type, String table, PrimaryField<T, PK> primaryField, Set<ImmutableField<T, ?>> immutableFields) {
+    public AbstractSerDes(Class<T> type, String table, PrimaryField<T, PK> primaryField, LinkedHashSet<ImmutableField<T, ?>> immutableFields) {
         this.type = type;
         this.table = table;
         this.primaryField = primaryField;
@@ -83,7 +84,8 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
 
         // Otherwise, update the value.
         database.updateUnchecked(this.table, this.primaryField.getName(), this.primaryField.get(object),
-                this.toInsertableMap(object, this.getMutableFields().stream().map(field -> ((Field<T, ?>) field)).collect(Collectors.toSet())));
+                this.toInsertableMap(object, this.getMutableFields().stream().map(field -> ((Field<T, ?>) field))
+                        .collect(Collectors.toUnmodifiableSet())));
     }
 
     private LinkedHashMap<String, Object> toInsertableMap(final T object, final Set<Field<T, ?>> fields) {
@@ -112,7 +114,8 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
         final Constructor<T> constructor;
 
         try {
-            constructor = this.type.getConstructor(this.immutableFields.stream().map(field -> PrimitiveClass.convert(field.getFieldType())).toArray(Class<?>[]::new));
+            constructor = this.type.getConstructor(this.immutableFields.stream()
+                    .map(field -> PrimitiveClass.convert(field.getType())).toArray(Class<?>[]::new));
         } catch (final NoSuchMethodException e) {
             throw new RuntimeException(NoSuchConstructorException.from(e));
         }
@@ -121,7 +124,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
             final var args = new ArrayList<>();
 
             immutableFields.forEach(field ->
-                    args.add(ResultSetConversions.getValueUnsafe(resultSet, field.getName(), field.getFieldType())));
+                    args.add(ResultSetConversions.getValueUnchecked(resultSet, field.getName(), field.getType())));
 
             final T constructedObject = constructor.newInstance(args.toArray());
             this.loadedObjects.add(constructedObject);
@@ -153,9 +156,18 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
         return constructedObject;
     }
 
+    protected boolean currentlyCreatingTable;
+
     @Override
-    public T deserialiseCareful(Database database, ResultSet resultSet) {
-        return this.deserialise(database, resultSet);
+    public void createTable(Database database) {
+        this.currentlyCreatingTable = true;
+        database.createTableUnchecked(this.table, this.primaryField, this.immutableFields);
+        this.currentlyCreatingTable = false;
+    }
+
+    @Override
+    public boolean currentlyCreatingTable() {
+        return this.currentlyCreatingTable;
     }
 
     @SuppressWarnings("unchecked")
@@ -166,7 +178,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
         /** The {@link ImmutableField}s, stored in a {@link LinkedHashMap} to retain the order in which they are added. */
         protected final LinkedHashSet<ImmutableField<T, ?>> immutableFields = new LinkedHashSet<>();
 
-        protected final Set<Field<T, ?>> fields = new HashSet<>();
+        protected final LinkedHashSet<Field<T, ?>> fields = new LinkedHashSet<>();
 
         protected PrimaryField<T, PK> primaryField;
 
@@ -181,24 +193,27 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
 
         public B primaryField(final PrimaryField<T, PK> primaryField) {
             this.primaryField = primaryField;
-            this.immutableFields.add(this.primaryField);
-            return (B) this;
+            return this.field(primaryField);
         }
 
         public <FT> B field(final Field<T, FT> field) {
             if (!field.isMutable())
                 this.immutableFields.add(((ImmutableField<T, ?>) field));
-            else this.fields.add(field);
+            this.fields.add(field);
 
             return (B) this;
         }
 
         public <FT> B field(final String name, final Class<FT> fieldType, final Function<T, FT> getter) {
-            return this.field(new ImmutableField<>(name, this.type, fieldType, false, getter));
+            return this.field(new ImmutableField<>(name, this.type, fieldType, false, false, getter));
         }
 
         public <FT> B uniqueField(final String name, final Class<FT> fieldType, final Function<T, FT> getter) {
-            return this.field(new ImmutableField<>(name, this.type, fieldType, true, getter));
+            return this.field(new ImmutableField<>(name, this.type, fieldType, true, false, getter));
+        }
+
+        public <FT> B nullableField(final String name, final Class<FT> fieldType, final Function<T, FT> getter) {
+            return this.field(new ImmutableField<>(name, this.type, fieldType, false, true, getter));
         }
 
         public abstract SD build();

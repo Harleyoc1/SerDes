@@ -54,7 +54,7 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      *
      * @return The {@link Class} of type {@link T} of the {@code field}.
      */
-    Class<T> getFieldType();
+    Class<T> getType();
 
     /**
      * Asserts if the SQL {@code field} is {@code unique}.
@@ -64,10 +64,13 @@ public interface Field<P extends SerDesable<P, ?>, T> {
     boolean isUnique();
 
     /**
-     * Assets if this {@link Field} object is mutable.
+     * Asserts if this {@link Field} object is {@code mutable}. If this returns
+     * {@code true}, calling {@link #set(Database, SerDesable, Object)} should
+     * <b>not</b> produce an {@link UnsupportedOperationException}.
      *
      * <p>This allows {@link Field} implementations to declare themselves as mutable
-     * without having to extend {@link MutableField}.</p>
+     * without having to extend {@link MutableField}, and should <b>always</b> be
+     * used over an {@code instanceof} check!</p>
      *
      * @return {@code true} if this field is {@code non-final} (can be mutated);
      *         {@code false} otherwise.
@@ -75,6 +78,16 @@ public interface Field<P extends SerDesable<P, ?>, T> {
     default boolean isMutable() {
         return false;
     }
+
+    /**
+     * Asserts if this {@link Field} is {@link Nullable}. Note that if this
+     * returns {@code false}, the default SQL declaration will use {@code not
+     * null}.
+     *
+     * @return {@code true} if this field is {@link Nullable}; {@code false}
+     * if not.
+     */
+    boolean isNullable();
 
     /**
      * Gets the value of the {@code field} of type {@link T} in the given {@code object}
@@ -86,6 +99,24 @@ public interface Field<P extends SerDesable<P, ?>, T> {
     T get(P object);
 
     /**
+     * Returns the SQL declaration for this {@link Field}, used to construct it when
+     * creating or editing the {@code table}.
+     *
+     * @return The SQL declaration for this {@link Field}.
+     */
+    default String getSQLDeclaration() {
+        return this.getName() + " " + this.getSQLDataType() + (this.isUnique() ? " unique " : " ") +
+                (this.isNullable() ? "" : "not null");
+    }
+
+    /**
+     * Returns the SQL data type for this {@link Field} as a {@link String}.
+     *
+     * @return The SQL data type for this {@link Field}.
+     */
+    String getSQLDataType();
+
+    /**
      * Sets the given {@code newValue} of type {@link T} to this {@link Field} in the given
      * {@code object} of type {@link P}.
      *
@@ -93,6 +124,9 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      * @param object The {@code object} of type {@link P} to set the {@code field} for.
      * @param newValue The {@code newValue} of type {@link T} to set.
      * @return This {@link Field} for chaining.
+     * @throws UnsupportedOperationException If this implementation of is not {@code mutable}.
+     *                                       Mutability should be checked via
+     *                                       {@link #isMutable()}.
      */
     default Field<P, T> set (Database database, P object, @Nullable T newValue) {
         throw new UnsupportedOperationException("Cannot set Field for Field implementation '" + this.getClass().getSimpleName() + "'.");
