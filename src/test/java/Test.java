@@ -1,5 +1,8 @@
+import com.harleyoconnor.serdes.util.CommonCollectors;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +20,12 @@ public final class Test {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         System.out.println(combined);
+
+        final Set<String> unmodifiable = linkedHashSet.stream().collect(CommonCollectors.toUnmodifiableLinkedSet());
+
+//        unmodifiable.add("should produce unsupported operation exception");
+
+        System.out.println(unmodifiable);
     }
 
 }

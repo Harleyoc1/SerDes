@@ -3,6 +3,7 @@ package com.harleyoconnor.serdes;
 import com.google.common.collect.ImmutableSet;
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.field.*;
+import com.harleyoconnor.serdes.util.CommonCollectors;
 import com.harleyoconnor.serdes.util.ResultSetConversions;
 
 import java.sql.ResultSet;
@@ -28,21 +29,14 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
 
     private final LinkedHashSet<Field<T, ?>> fields;
 
-    private ClassSerDes(final Class<T> type, final String table, final PrimaryField<T, PK> primaryField, final LinkedHashSet<Field<T, ?>> fields, final LinkedHashSet<ImmutableField<T, ?>> immutableFields) {
+    private ClassSerDes(final Class<T> type, final String table, final PrimaryField<T, PK> primaryField, final LinkedHashSet<Field<T, ?>> fields, final LinkedHashSet<Field<T, ?>> immutableFields) {
         super(type, table, primaryField, immutableFields);
         this.fields = fields;
     }
 
     @Override
     public Set<Field<T, ?>> getFields() {
-        return fields;
-    }
-
-    @Override
-    public void createTable(Database database) {
-        this.currentlyCreatingTable = true;
-        database.createTableUnchecked(this.table, this.primaryField, this.fields);
-        this.currentlyCreatingTable = false;
+        return this.fields.stream().collect(CommonCollectors.toUnmodifiableLinkedSet());
     }
 
     @Override
@@ -71,9 +65,39 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
         field.set(database, object, ResultSetConversions.getValueUnchecked(resultSet, field.getName(), field.getType()));
     }
 
+    /**
+     * A {@link AbstractSerDes.Builder} extension for constructing {@link ClassSerDes}
+     * {@code object}s.
+     *
+     * <p>A typical use for this may look something like below:</p><pre>
+     *     public static final SerDes<Employee, Integer> SER_DES = ClassSerDes.Builder.of(Integer.class, Employee.class)
+     *         .field("id", Integer.class, Employee::getId)
+     *         .field("hire_date", Date.class, Employee::getHireDate)
+     *         .field("first_name", String.class, Employee::getFirstName, Employee::setFirstName)
+     *         .field("last_name", String.class, Employee::getLastName, Employee::setLastName)
+     *         .uniqueField("email", String.class, Employee::getEmail, Employee::setEmail).build();
+     * </pre>
+     *
+     * @param <T> The type of {@link SerDesable} the {@link ClassSerDes} is being created
+     *            for.
+     * @param <PK> The type of the {@link PrimaryField}.
+     * @param <CSD> The type of {@link ClassSerDes} being built.
+     * @param <B> The type of the builder.
+     */
     @SuppressWarnings("unchecked")
     public static class Builder<T extends SerDesable<T, PK>, PK, CSD extends ClassSerDes<T, PK>, B extends ClassSerDes.Builder<T, PK, CSD, B>> extends AbstractSerDes.Builder<T, PK, CSD, B> {
 
+        /**
+         * Constructs a new {@link RecordSerDes.Builder} {@code object} with the specified
+         * {@link Class} type and table name.
+         *
+         * <p>For external construction, {@link #of(Class, Class, String)} should be
+         * used.</p>
+         *
+         * @param type The {@link Class} of the {@link SerDesable} having an
+         *             {@link RecordSerDes} built for it.
+         * @param tableName The name of the SQL table.
+         */
         public Builder(final Class<T> type, final String tableName) {
             super(type, tableName);
         }

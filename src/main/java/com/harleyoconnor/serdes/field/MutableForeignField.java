@@ -10,15 +10,13 @@ import java.util.function.Function;
 /**
  * A {@code mutable} ({@code non-final}) implementation for {@link ForeignField}.
  *
- * <p>Note that this is currently the only implementation of {@link ForeignField}, as immutable
- * foreign fields will require reflection to prevent infinite loops from happening when two
- * objects have foreign keys of each other (and the entries both happen to reference each other).</p>
- *
  * @param <P> The type of the parent {@link Class}.
  * @param <T> The type of the foreign {@code table}'s {@code field}.
  * @param <FKT> The type of the foreign {@code table}.
+ *
  * @author Harley O'Connor
  * @see ForeignField
+ * @see ImmutableForeignField
  * @see MutableField
  */
 public class MutableForeignField<P extends SerDesable<P, ?>, T, FKT extends SerDesable<FKT, ?>> extends AbstractForeignField<P, T, FKT> {

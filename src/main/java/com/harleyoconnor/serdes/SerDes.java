@@ -2,11 +2,11 @@ package com.harleyoconnor.serdes;
 
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.field.*;
+import com.harleyoconnor.serdes.util.CommonCollectors;
 
 import java.sql.ResultSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Implementations will handle serialising and deserialising an {@link Object} of
@@ -62,6 +62,10 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
     /**
      * Gets all {@link Field} objects for {@link T} as a {@link Set}.
      *
+     * <p>Note that this is a read-only view of the {@link Field}s, and will
+     * generally be created as an unmodifiable {@link Set} (and hence modifying
+     * it will cause an {@link UnsupportedOperationException} to be thrown).</p>
+     *
      * @return A {@link Set} of {@link Field} objects for this {@link SerDes}.
      */
     Set<Field<T, ?>> getFields();
@@ -69,27 +73,39 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
     /**
      * Gets all {@link MutableField} objects for {@link T} as a {@link Set}.
      *
+     * <p>Note that this is a read-only view of the {@link Field}s, and will
+     * generally be created as an unmodifiable {@link Set} (and hence modifying
+     * it will cause an {@link UnsupportedOperationException} to be thrown).</p>
+     *
      * @return A {@link Set} of {@link MutableField} objects for this {@link SerDes}.
      */
     default Set<Field<T, ?>> getMutableFields() {
         return this.getFields().stream()
                 .filter(Field::isMutable)
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(CommonCollectors.toUnmodifiableLinkedSet());
     }
 
     /**
      * Gets all {@link ImmutableField} objects for {@link T} as a {@link Set}.
+     *
+     * <p>Note that this is a read-only view of the {@link Field}s, and will
+     * generally be created as an unmodifiable {@link Set} (and hence modifying
+     * it will cause an {@link UnsupportedOperationException} to be thrown).</p>
      *
      * @return A {@link Set} of {@link ImmutableField} objects for this {@link SerDes}.
      */
     default Set<Field<T, ?>> getImmutableFields() {
         return this.getFields().stream()
                 .filter(field -> !field.isMutable())
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(CommonCollectors.toUnmodifiableLinkedSet());
     }
 
     /**
      * Gets all {@link ForeignField} objects for {@link T} as a {@link Set}.
+     *
+     * <p>Note that this is a read-only view of the {@link Field}s, and will
+     * generally be created as an unmodifiable {@link Set} (and hence modifying
+     * it will cause an {@link UnsupportedOperationException} to be thrown).</p>
      *
      * @return A {@link Set} of {@link ForeignField} objects for this {@link SerDes}.
      */
@@ -98,7 +114,7 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
         return this.getFields().stream()
                 .filter(field -> field instanceof ForeignField)
                 .map(field -> ((ForeignField<T, ?, ?>) field))
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(CommonCollectors.toUnmodifiableLinkedSet());
     }
 
     /**

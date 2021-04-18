@@ -14,10 +14,11 @@ import java.sql.SQLException;
 public final class SQLHelper {
 
     /**
-     * Gets the connection for the given parameters, or throws a {@link RuntimeException} with the thrown
-     * {@link SQLException} if it failed.
+     * Gets the connection for the specified parameters, or throws a {@link RuntimeException}
+     * with the thrown {@link SQLException} if it failed.
      *
-     * @param databaseType The type of database for the connection (such as {@code mariadb} for MariaDB).
+     * @param databaseType The type of database for the connection (such as {@code mariadb}
+     *                     for MariaDB).
      * @param ip The IP for the database.
      * @param port The port for the database.
      * @param schema The schema to connect to.
@@ -28,10 +29,29 @@ public final class SQLHelper {
     public static Connection getConnectionUnsafe (final String databaseType, final String ip, final String port,
                                                   @Nullable final String schema, final String username, final String password) {
         try {
-            return DriverManager.getConnection("jdbc:" + databaseType + "://" + ip + ":" + port + (schema != null ? "/" + schema : ""), username, password);
+            return getConnection(databaseType, ip, port, schema, username, password);
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Gets the connection for the specified parameters.
+     *
+     * @param databaseType The type of database for the connection (such as {@code mariadb}
+     *                     for MariaDB).
+     * @param ip The IP for the database.
+     * @param port The port for the database.
+     * @param schema The schema to connect to.
+     * @param username The username for the login.
+     * @param password The password for the login.
+     * @return The {@link Connection} instance.
+     * @throws SQLException If a database access error occurs.
+     */
+    public static Connection getConnection(final String databaseType, final String ip, final String port,
+                                           @Nullable String schema, final String username, final String password)
+            throws SQLException {
+        return DriverManager.getConnection("jdbc:" + databaseType + "://" + ip + ":" + port + (schema != null ? "/" + schema : ""), username, password);
     }
 
     /**

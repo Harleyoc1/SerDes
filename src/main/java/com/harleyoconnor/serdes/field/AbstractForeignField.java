@@ -16,6 +16,7 @@ import java.util.function.Function;
  * @param <P> The type of the parent {@link Class}.
  * @param <T> The type of the foreign {@code table}'s {@code field}.
  * @param <FKT> The type of the foreign {@code table}.
+ *
  * @author Harley O'Connor
  * @see AbstractField
  * @see ForeignField

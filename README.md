@@ -1,5 +1,5 @@
 # SerDes
-A library for serialisation and deserialisation to and from an SQL table and a Java object. Currently, it is in early stages of development and testing, and does not have any documentation as of yet.
+A library for serialisation and deserialisation to and from an SQL table and a Java object. Currently, it is in early stages of development and testing, and does not have any documentation as of yet (though the Javadoc should provide decent explanations).
 
 Note that this is built on and expects to run on `Java 16` (and hence you will also need `Gradle 7`)!
 

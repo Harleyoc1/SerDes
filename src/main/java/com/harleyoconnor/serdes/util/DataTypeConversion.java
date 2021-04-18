@@ -10,6 +10,7 @@ import java.util.stream.Stream;
  * providing their declaration.
  *
  * @author Harley O'Connor
+ * @since SerDes 0.0.3
  */
 public enum DataTypeConversion {
     BOOLEAN(boolean.class, "bool"),

@@ -5,7 +5,6 @@ import com.harleyoconnor.serdes.exception.NoSuchRowException;
 import com.harleyoconnor.serdes.field.Field;
 import com.harleyoconnor.serdes.field.ForeignField;
 import com.harleyoconnor.serdes.field.PrimaryField;
-import com.harleyoconnor.serdes.util.DataTypeConversion;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -156,7 +155,7 @@ public class Database {
         return true;
     }
 
-    public <SD extends SerDesable<SD, PK>, PK> void createTable(final String name, final PrimaryField<SD, PK> primaryField, final LinkedHashSet<? extends Field<SD, ?>> fields) throws SQLException {
+    public <SD extends SerDesable<SD, PK>, PK> void createTable(final String name, final PrimaryField<SD, PK> primaryField, final Set<? extends Field<SD, ?>> fields) throws SQLException {
         // Create and execute the statement.
         this.executePreparedStatement("create table " + name + " (" +
                 fields.stream().map(field -> field.getSQLDeclaration() + ", ")
@@ -178,7 +177,7 @@ public class Database {
         }
     }
 
-    public <SD extends SerDesable<SD, PK>, PK> void createTableUnchecked(final String name, final PrimaryField<SD, PK> primaryField, final LinkedHashSet<? extends Field<SD, ?>> fields) {
+    public <SD extends SerDesable<SD, PK>, PK> void createTableUnchecked(final String name, final PrimaryField<SD, PK> primaryField, final Set<? extends Field<SD, ?>> fields) {
         try {
             this.createTable(name, primaryField, fields);
         } catch (final SQLException e) {
