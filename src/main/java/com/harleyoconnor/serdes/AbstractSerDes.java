@@ -1,13 +1,14 @@
 package com.harleyoconnor.serdes;
 
 import com.harleyoconnor.serdes.database.Database;
-import com.harleyoconnor.serdes.exception.NoSuchColumnException;
 import com.harleyoconnor.serdes.exception.NoSuchConstructorException;
 import com.harleyoconnor.serdes.field.*;
 import com.harleyoconnor.serdes.util.CommonCollectors;
+import com.harleyoconnor.serdes.util.Null;
 import com.harleyoconnor.serdes.util.PrimitiveClass;
 import com.harleyoconnor.serdes.util.ResultSetConversions;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
@@ -209,23 +210,18 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
             // primitive equivalents.
             constructor = this.type.getConstructor(this.immutableFields.stream()
                     .map(field -> field instanceof ForeignField ?
-                            ((ForeignField<?, ?, ?>) field).getForeignField() : field)
-                    .map(field -> PrimitiveClass.convert(field.getType()))
+                            ((ForeignField<?, ?, ?>) field).getForeignField()
+                                    .getParentType() :
+                            PrimitiveClass.convert(field.getType()))
                     .toArray(Class<?>[]::new));
         } catch (final NoSuchMethodException e) {
             throw new RuntimeException(NoSuchConstructorException.from(e));
         }
 
         try {
-            final var args = new ArrayList<>();
-
-            // For each immutable field, get the argument value.
-            this.immutableFields.forEach(field ->
-                    args.add(ResultSetConversions.getValueUnchecked(resultSet,
-                            field.getName(), field.getType())));
-
             // Construct the object and add it to the set of loaded objects.
-            final T constructedObject = constructor.newInstance(args.toArray());
+            final T constructedObject = constructor.newInstance(this.immutableFields.stream()
+                    .map(field -> this.getFieldValue(database, resultSet, field)).toArray());
             this.loadedObjects.add(constructedObject);
 
             // Finalise deserialisation, then return the result.
@@ -233,6 +229,32 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Gets a {@link Field}'s value from the specified {@link ResultSet} in the
+     * specified {@link Database}.
+     *
+     * <p>Note that the database is only needed for reading from foreign fields,
+     * so if the specified {@link Field} is not a {@link ForeignField}, it may be
+     * {@code null}.</p>
+     *
+     * @param database The {@link Database} to read from, if necessary.
+     * @param resultSet The {@link ResultSet} to read the value from.
+     * @param field The {@link Field} to get the value for.
+     * @param <FT> The underlying type of the specified {@link Field}.
+     * @return The value of the {@link Field}.
+     */
+    @Nullable
+    protected <FT> Object getFieldValue(@Nullable final Database database,
+                                        final ResultSet resultSet,
+                                        final Field<T, FT> field) {
+        return Null.applyOrNull(ResultSetConversions.getValueUnchecked(resultSet,
+                field.getName(), field.getType()),
+                value -> field instanceof ForeignField ?
+                        ((ForeignField<T, FT, ?>) field)
+                                .getFromValue(Objects.requireNonNull(database), value)
+                        : value);
     }
 
     /**

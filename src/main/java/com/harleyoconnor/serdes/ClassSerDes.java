@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -41,17 +42,21 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
 
     @Override
     protected T finaliseDeserialisation(Database database, ResultSet resultSet, T constructedObject, boolean careful) {
-        this.getMutableFields().forEach(mutableField -> this.setField(database, resultSet, constructedObject, mutableField));
+        final Consumer<Field<T, ?>> fieldSetter = field -> this.setField(database, resultSet, constructedObject, field);
+        this.getMutableFields().forEach(fieldSetter);
 
         if (!careful)
-            this.getForeignFields().forEach(foreignField -> this.setField(database, resultSet, constructedObject, foreignField));
-        else this.getForeignFields().forEach(foreignField -> this.setWhenNextDeserialised(database, constructedObject, foreignField, foreignField.getForeignField()));
+            this.getForeignFields().stream().filter(Field::isMutable).forEach(fieldSetter);
+        else this.getForeignFields().forEach(foreignField -> this.setWhenNextDeserialised(database, constructedObject,
+                foreignField, foreignField.getForeignField()));
 
         return super.finaliseDeserialisation(database, resultSet, constructedObject, careful);
     }
 
     private <A extends SerDesable<A, ?>, B, C> void setWhenNextDeserialised(final Database database, final T constructedObject, final ForeignField<T, C, ?> foreignField, final Field<A, B> foreignForeignField) {
-        foreignForeignField.getParentSerDes().get().whenNextDeserialised(deserialisedObject -> this.whenNextDeserialised(database, constructedObject, deserialisedObject, foreignField));
+        foreignForeignField.getParentSerDes().orElseThrow()
+                .whenNextDeserialised(deserialisedObject -> this.whenNextDeserialised(database, constructedObject,
+                        deserialisedObject, foreignField));
     }
 
     @SuppressWarnings("unchecked")

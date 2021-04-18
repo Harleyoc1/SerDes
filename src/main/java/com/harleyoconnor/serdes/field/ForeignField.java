@@ -43,6 +43,6 @@ public interface ForeignField<P extends SerDesable<P, ?>, T, FKT extends SerDesa
      * @param value The value of the {@link Field} referenced by this {@link ForeignField}.
      * @return An {@link Object} of type {@link FKT}, obtainined from the given {@code value}.
      */
-    FKT getFromValue(Database database, T value);
+    FKT getFromValue(Database database, @Nullable T value);
 
 }

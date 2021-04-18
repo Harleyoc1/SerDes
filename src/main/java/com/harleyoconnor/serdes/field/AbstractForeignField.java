@@ -5,6 +5,7 @@ import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.util.Null;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -54,7 +55,7 @@ public abstract class AbstractForeignField<P extends SerDesable<P, ?>, T, FKT ex
     }
 
     @Override
-    public FKT getFromValue(Database database, T value) {
+    public FKT getFromValue(Database database, @Nullable T value) {
         /* We call unsafe here as this should not be called unless there is already a SerDes registered
            for the foreign field, and if not that is a misuse of the API. */
         final var serDes = SerDesRegistry.getUnsafe(this.foreignField.getParentType());
