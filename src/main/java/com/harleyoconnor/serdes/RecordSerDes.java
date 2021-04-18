@@ -53,7 +53,7 @@ public final class RecordSerDes<T extends Record & SerDesable<T, PK>, PK> extend
      * {@code object}s.
      *
      * <p>A typical use for this may look something like below:</p><pre>
-     *     public static final SerDes<Rectangle, Integer> SER_DES = RecordSerDes.Builder.of(Integer.class, Rectangle.class)
+     *     public static final SerDes{@literal <} Rectangle, Integer{@literal >} SER_DES = RecordSerDes.Builder.of(Integer.class, Rectangle.class)
      *         .field("id", Integer.class, Rectangle::id)
      *         .field("length", Double.class, Rectangle::length)
      *         .field("width", Double.class, Rectangle::width).build();
@@ -88,7 +88,7 @@ public final class RecordSerDes<T extends Record & SerDesable<T, PK>, PK> extend
          * {@link Builder} class.
          *
          * @return The built {@link RecordSerDes}.
-         * @throws AbstractSerDes.PrimaryFieldUnset If a {@link PrimaryField} was
+         * @throws PrimaryFieldUnset If a {@link PrimaryField} was
          *         not set for this {@link Builder}.
          */
         @Override

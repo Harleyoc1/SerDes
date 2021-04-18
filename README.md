@@ -21,5 +21,5 @@ maven {
 Next, add the following to your `dependencies` section to load java utilities:
 
 ```groovy
-implementation group: 'com.harleyoconnor.serdes', name: 'SerDes', version: '0.0.3'
+implementation group: 'com.harleyoconnor.serdes', name: 'SerDes', version: '0.0.4'
 ```

@@ -70,7 +70,7 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
      * {@code object}s.
      *
      * <p>A typical use for this may look something like below:</p><pre>
-     *     public static final SerDes<Employee, Integer> SER_DES = ClassSerDes.Builder.of(Integer.class, Employee.class)
+     *     public static final SerDes{@literal <} Employee, Integer{@literal >} SER_DES = ClassSerDes.Builder.of(Integer.class, Employee.class)
      *         .field("id", Integer.class, Employee::getId)
      *         .field("hire_date", Date.class, Employee::getHireDate)
      *         .field("first_name", String.class, Employee::getFirstName, Employee::setFirstName)

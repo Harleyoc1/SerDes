@@ -453,11 +453,10 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
         /**
          * Builds the {@link SerDes} of type {@link SD} from all given properties.
          *
-         * @implNote
-         * {@link #assertPrimaryFieldSet()} should be called prior to construction
-         * to disallow {@code null} {@link PrimaryField}s and
+         * <p>{@link #assertPrimaryFieldSet()} should be called prior to
+         * construction to disallow {@code null} {@link PrimaryField}s and
          * {@link #register(AbstractSerDes)} after to register the created
-         * {@link SerDes}.
+         * {@link SerDes}.</p>
          *
          * @return The built {@link SerDes} of type {@link SD}.
          */
