@@ -6,6 +6,7 @@ import com.harleyoconnor.serdes.field.Field;
 import com.harleyoconnor.serdes.field.ForeignField;
 import com.harleyoconnor.serdes.field.PrimaryField;
 
+import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +36,7 @@ public class Database {
         return this.connection;
     }
 
-    public ResultSet select(String table, String valueName, Object value) throws SQLException {
+    public ResultSet select(String table, String valueName, @Nullable Object value) throws SQLException {
         final var statement = this.connection.prepareStatement("select * from `" + table + "` where " + valueName + " = ?",
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
@@ -49,7 +50,7 @@ public class Database {
         return resultSet;
     }
 
-    public ResultSet selectUnchecked(String table, String valueName, Object value) {
+    public ResultSet selectUnchecked(String table, String valueName, @Nullable Object value) {
         try {
             return this.select(table, valueName, value);
         } catch (final SQLException e) {
@@ -57,7 +58,7 @@ public class Database {
         }
     }
 
-    public void update(final String table, final String primaryFieldName, final Object primaryFieldValue, final LinkedHashMap<String, Object> valuesToUpdate) throws SQLException {
+    public void update(final String table, final String primaryFieldName, @Nullable final Object primaryFieldValue, final LinkedHashMap<String, Object> valuesToUpdate) throws SQLException {
         final var statementBuilder = new StringBuilder("update `" + table + "` set ");
         final var fieldNames = new ArrayList<>(valuesToUpdate.keySet());
 
@@ -73,7 +74,7 @@ public class Database {
         this.executePreparedStatement(statementBuilder.toString(), args);
     }
 
-    public void updateUnchecked(final String table, final String primaryFieldName, final Object primaryFieldValue, final LinkedHashMap<String, Object> valuesToUpdate) {
+    public void updateUnchecked(final String table, final String primaryFieldName, @Nullable final Object primaryFieldValue, final LinkedHashMap<String, Object> valuesToUpdate) {
         try {
             this.update(table, primaryFieldName, primaryFieldValue, valuesToUpdate);
         } catch (final SQLException e) {
@@ -132,7 +133,7 @@ public class Database {
         return resultSet.getInt(1);
     }
 
-    public boolean valueExists(final String table, final String fieldName, final Object fieldValue) {
+    public boolean valueExists(final String table, final String fieldName, @Nullable final Object fieldValue) {
         try {
             // TODO: Make a method that doesn't involve pointlessly transferring this data to the client.
             this.select(table, fieldName, fieldValue);

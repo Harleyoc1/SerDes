@@ -5,6 +5,7 @@ import com.harleyoconnor.serdes.field.*;
 import com.harleyoconnor.serdes.util.CommonCollectors;
 
 import java.sql.ResultSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -164,7 +165,7 @@ public interface SerDes<T extends SerDesable<T, PK>, PK> {
      * @return The deserialised {@link Object} of type {@link T}.
      */
     default T deserialise (final Database database, final PK primaryKeyValue) {
-        return this.getLoadedObjects().stream().filter(serDesable -> this.getPrimaryField().get(serDesable).equals(primaryKeyValue))
+        return this.getLoadedObjects().stream().filter(serDesable -> Objects.equals(this.getPrimaryField().get(serDesable), primaryKeyValue))
                 .findFirst().orElseGet(() -> this.deserialise(database, this.getResultSet(database, primaryKeyValue)));
     }
 

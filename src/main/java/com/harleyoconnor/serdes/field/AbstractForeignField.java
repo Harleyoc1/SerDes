@@ -3,7 +3,9 @@ package com.harleyoconnor.serdes.field;
 import com.harleyoconnor.serdes.SerDesRegistry;
 import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.database.Database;
+import com.harleyoconnor.serdes.util.Null;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -43,7 +45,7 @@ public abstract class AbstractForeignField<P extends SerDesable<P, ?>, T, FKT ex
 
     @Override
     public T get(P object) {
-        return this.foreignField.get(this.getActual(object));
+        return Null.applyOrNull(this.getActual(object), this.foreignField::get);
     }
 
     @Override
@@ -58,7 +60,7 @@ public abstract class AbstractForeignField<P extends SerDesable<P, ?>, T, FKT ex
         final var serDes = SerDesRegistry.getUnsafe(this.foreignField.getParentType());
 
         // Either obtain the object from the currently loaded objects for that SerDes or deserialise it.
-        return serDes.getLoadedObjects().stream().filter(object -> this.foreignField.get(object).equals(value)).findFirst().orElseGet(() -> {
+        return serDes.getLoadedObjects().stream().filter(object -> Objects.equals(this.foreignField.get(object), value)).findFirst().orElseGet(() -> {
             // Selects the result set from the database based on the given value.
             return serDes.deserialise(database, database.selectUnchecked(serDes.getTable(), this.foreignField.getName(), value));
         });

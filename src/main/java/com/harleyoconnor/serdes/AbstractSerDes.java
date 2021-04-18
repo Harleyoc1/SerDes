@@ -137,8 +137,11 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
      */
     private LinkedHashMap<String, Object> toInsertableMap(final T object,
                                                           final Set<Field<T, ?>> fields) {
-        return fields.stream().collect(Collectors.toMap(Field::getName,
-                field -> field.get(object), (m1, m2) -> m2, LinkedHashMap::new));
+        return fields.stream()
+                .filter(field -> field.get(object) != null)
+                .collect(Collectors.toMap(Field::getName,
+                        field -> Objects.requireNonNull(field.get(object)),
+                        (m1, m2) -> m2, LinkedHashMap::new));
     }
 
     /**
@@ -205,6 +208,8 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
             // Get the relevant constructor, converting all wrapper classes to their
             // primitive equivalents.
             constructor = this.type.getConstructor(this.immutableFields.stream()
+                    .map(field -> field instanceof ForeignField ?
+                            ((ForeignField<?, ?, ?>) field).getForeignField() : field)
                     .map(field -> PrimitiveClass.convert(field.getType()))
                     .toArray(Class<?>[]::new));
         } catch (final NoSuchMethodException e) {

@@ -97,6 +97,7 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      * @param object The {@code object} of type {@link P} to get the {@code field} for.
      * @return The value of type {@link T} of the {@code field}.
      */
+    @Nullable
     T get(P object);
 
     /**
