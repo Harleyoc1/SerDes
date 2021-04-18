@@ -1,9 +1,7 @@
 # SerDes
-A library for serialisation and deserialisation to and from an SQL table and a Java object. Currently, it is in early stages of development and testing, and does not have any documentation as of yet (though the Javadoc should provide decent explanations).
+A library for serialisation and deserialisation to and from an SQL table and a Java object. Built on `Java 16`.
 
-Note that this is built on and expects to run on `Java 16` (and hence you will also need `Gradle 7`)!
-
-Currently, a `SerDes` must be created manually using its respective `Builder`, but in the future I plan on making the entire system annotation-based. 
+Due to this being in early stages of development, semantic versioning conventions are currently **not** strictly followed. There is also not currently any documentation, though most methods and classes have Javadoc (I am slowly adding Javadoc to all methods and classes, and fields where necessary).
 
 ## Gradle Setup
 *Don't reinvent the wheel, add it to your build.gradle!*
@@ -21,5 +19,5 @@ maven {
 Next, add the following to your `dependencies` section to load java utilities:
 
 ```groovy
-implementation group: 'com.harleyoconnor.serdes', name: 'SerDes', version: '0.0.4'
+implementation group: 'com.harleyoconnor.serdes', name: 'SerDes', version: '0.0.5'
 ```
