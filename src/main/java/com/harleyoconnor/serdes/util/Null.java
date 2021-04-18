@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 /**
  * @author Harley O'Connor
+ * @since 0.0.5
  */
 // TODO: Extend capabilities, add Javadoc, and move to JavaUtilities.
 public final class Null {

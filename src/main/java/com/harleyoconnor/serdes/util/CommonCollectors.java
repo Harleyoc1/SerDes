@@ -16,7 +16,7 @@ import java.util.stream.Collector;
  * @author Harley O'Connor
  * @see Collector
  * @see java.util.stream.Collectors
- * @since SerDes 0.0.4
+ * @since 0.0.4
  */
 // TODO: Move to JavaUtilities and add more useful collectors.
 public final class CommonCollectors {

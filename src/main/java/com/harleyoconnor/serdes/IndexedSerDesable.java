@@ -1,6 +1,7 @@
 package com.harleyoconnor.serdes;
 
 import com.harleyoconnor.serdes.database.Database;
+import com.harleyoconnor.serdes.database.DefaultDatabase;
 import com.harleyoconnor.serdes.field.PrimaryField;
 
 /**
@@ -21,6 +22,10 @@ public abstract class IndexedSerDesable<T extends IndexedSerDesable<T>> extends 
     }
 
     protected final int id;
+
+    public IndexedSerDesable() {
+        this(DefaultDatabase.get());
+    }
 
     public IndexedSerDesable(final Database database) {
         this.id = database.getMaxOrDefault(this.getSerDes().getTable(), this.getPrimaryField().getName(), 1) + 1;

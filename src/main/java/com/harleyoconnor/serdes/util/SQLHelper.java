@@ -47,6 +47,7 @@ public final class SQLHelper {
      * @param password The password for the login.
      * @return The {@link Connection} instance.
      * @throws SQLException If a database access error occurs.
+     * @since 0.0.4
      */
     public static Connection getConnection(final String databaseType, final String ip, final String port,
                                            @Nullable String schema, final String username, final String password)

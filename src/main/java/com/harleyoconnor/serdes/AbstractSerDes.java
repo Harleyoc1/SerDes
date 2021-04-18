@@ -244,6 +244,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
      * @param field The {@link Field} to get the value for.
      * @param <FT> The underlying type of the specified {@link Field}.
      * @return The value of the {@link Field}.
+     * @since 0.0.5
      */
     @Nullable
     protected <FT> Object getFieldValue(@Nullable final Database database,

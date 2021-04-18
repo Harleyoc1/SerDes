@@ -43,6 +43,15 @@ public interface SerDesable<T extends SerDesable<T, PK>, PK> {
 
     /**
      * Serialises this {@link SerDesable} using
+     * {@link SerDes#serialise(SerDesable)}.
+     */
+    @SuppressWarnings("unchecked")
+    default void serialise() {
+        this.getSerDes().serialise((T) this);
+    }
+
+    /**
+     * Serialises this {@link SerDesable} using
      * {@link SerDes#serialise(Database, SerDesable)}.
      *
      * @param database The {@link Database} to serialise from.
