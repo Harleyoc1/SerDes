@@ -1,5 +1,6 @@
 package com.harleyoconnor.serdes.database;
 
+import com.harleyoconnor.serdes.SerDes;
 import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.exception.NoSuchRowException;
 import com.harleyoconnor.serdes.field.Field;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  *
  * @author Harley O'Connor
  */
+// TODO: Javadoc
 public class Database {
 
     private final Connection connection;
@@ -53,6 +55,36 @@ public class Database {
     public ResultSet selectUnchecked(String table, String valueName, @Nullable Object value) {
         try {
             return this.select(table, valueName, value);
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @since 0.0.6
+     */
+    public <PF, V extends SerDesable<V, PF>> List<V> selectAll(final SerDes<V, PF> serDes, final String field, final Object value) throws SQLException {
+        final List<V> selected = new LinkedList<>();
+
+        try {
+            final var resultSet = this.select(serDes.getTable(), field, value);
+
+            do {
+                selected.add(serDes.deserialise(this, resultSet));
+            } while (resultSet.next());
+        } catch (final NoSuchRowException e) {
+            return Collections.emptyList();
+        }
+
+        return selected;
+    }
+
+    /**
+     * @since 0.0.6
+     */
+    public <PF, V extends SerDesable<V, PF>> List<V> selectAllUnchecked(final SerDes<V, PF> serDes, final String field, final Object value) {
+        try {
+            return this.selectAll(serDes, field, value);
         } catch (final SQLException e) {
             throw new RuntimeException(e);
         }
