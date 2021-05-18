@@ -1,0 +1,67 @@
+fun property(key: String) = project.findProperty(key).toString()
+
+plugins {
+    id("java")
+    id("maven-publish")
+}
+
+val projectName = property("name")
+group = property("group")
+version = property("version")
+
+repositories {
+    mavenCentral()
+    maven("http://harleyoconnor.com/maven/") {
+        this.isAllowInsecureProtocol = true
+    }
+}
+
+dependencies {
+    implementation(group = "com.google.guava", name = "guava", version = property("guavaVersion") + "-jre")
+    implementation(group = "com.harleyoconnor.javautilities", name = "JavaUtilities", version = property("javaUtilitiesVersion"))
+
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = property("junitVersion"))
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            artifactId = projectName
+
+            from(components["java"])
+
+            pom {
+                name.set(projectName)
+                url.set("https://github.com/Harleyoc1/${projectName}")
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("https://mit-license.org")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("harleyoconnor")
+                        name.set("Harley O\"Connor")
+                        email.set("harleyoc1@gmail.com")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/Harleyoc1/${projectName}.git")
+                    developerConnection.set("scm:git:ssh://github.com/Harleyoc1/${projectName}.git")
+                    url.set("https://github.com/Harleyoc1/${projectName}")
+                }
+            }
+        }
+    }
+}
