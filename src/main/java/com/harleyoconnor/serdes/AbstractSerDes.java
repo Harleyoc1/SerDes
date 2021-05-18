@@ -1,5 +1,6 @@
 package com.harleyoconnor.serdes;
 
+import com.harleyoconnor.javautilities.collection.WeakHashSet;
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.exception.NoSuchConstructorException;
 import com.harleyoconnor.serdes.field.*;
@@ -37,8 +38,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
 
     protected final LinkedHashSet<Field<T, ?>> immutableFields;
 
-    // TODO: Automatic unloading of these (maybe add a WeakHashSet to JavaUtilities?)
-    protected final Set<T> loadedObjects = new HashSet<>();
+    protected final Set<T> loadedObjects = new WeakHashSet<>();
 
     protected final List<Consumer<T>> nextDeserialisedResultConsumers = new ArrayList<>();
     private boolean currentlyDeserialising;
