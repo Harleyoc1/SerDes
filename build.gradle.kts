@@ -25,41 +25,41 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    this.useJUnitPlatform()
 }
 
 java {
-    withJavadocJar()
-    withSourcesJar()
+    this.withJavadocJar()
+    this.withSourcesJar()
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = projectName
+            this.artifactId = projectName
 
-            from(components["java"])
+            this.from(components["java"])
 
             pom {
-                name.set(projectName)
-                url.set("https://github.com/Harleyoc1/${projectName}")
+                this.name.set(projectName)
+                this.url.set("https://github.com/Harleyoc1/${projectName}")
                 licenses {
                     license {
-                        name.set("MIT")
-                        url.set("https://mit-license.org")
+                        this.name.set("MIT")
+                        this.url.set("https://mit-license.org")
                     }
                 }
                 developers {
                     developer {
-                        id.set("harleyoconnor")
-                        name.set("Harley O\"Connor")
-                        email.set("harleyoc1@gmail.com")
+                        this.id.set("harleyoconnor")
+                        this.name.set("Harley O\"Connor")
+                        this.email.set("harleyoc1@gmail.com")
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/Harleyoc1/${projectName}.git")
-                    developerConnection.set("scm:git:ssh://github.com/Harleyoc1/${projectName}.git")
-                    url.set("https://github.com/Harleyoc1/${projectName}")
+                    this.connection.set("scm:git:git://github.com/Harleyoc1/${projectName}.git")
+                    this.developerConnection.set("scm:git:ssh://github.com/Harleyoc1/${projectName}.git")
+                    this.url.set("https://github.com/Harleyoc1/${projectName}")
                 }
             }
         }
