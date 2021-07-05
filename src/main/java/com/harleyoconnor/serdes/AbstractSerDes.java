@@ -1,12 +1,12 @@
 package com.harleyoconnor.serdes;
 
 import com.harleyoconnor.javautilities.collection.WeakHashSet;
+import com.harleyoconnor.javautilities.util.Primitive;
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.exception.NoSuchConstructorException;
 import com.harleyoconnor.serdes.field.*;
 import com.harleyoconnor.serdes.util.CommonCollectors;
 import com.harleyoconnor.serdes.util.Null;
-import com.harleyoconnor.serdes.util.PrimitiveClass;
 import com.harleyoconnor.serdes.util.ResultSetConversions;
 
 import javax.annotation.Nullable;
@@ -212,7 +212,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
                     .map(field -> field instanceof ForeignField ?
                             ((ForeignField<?, ?, ?>) field).getForeignField()
                                     .getParentType() :
-                            PrimitiveClass.convert(field.getType()))
+                            Primitive.fromOrSelf(field.getType()))
                     .toArray(Class<?>[]::new));
         } catch (final NoSuchMethodException e) {
             throw new RuntimeException(NoSuchConstructorException.from(e));
@@ -365,7 +365,7 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
          */
         public B primaryField(final PrimaryField<T, PK> primaryField) {
             this.primaryField = primaryField;
-            return this.field(primaryField);
+            return (B) this;
         }
 
         /**
@@ -377,8 +377,12 @@ public abstract class AbstractSerDes<T extends SerDesable<T, PK>, PK> implements
          * @return This {@link Builder} for chaining.
          */
         public B field(final Field<T, ?> field) {
-            if (!field.isMutable())
+            if (field instanceof PrimaryField) {
+                this.primaryField((PrimaryField<T, PK>) field);
+            }
+            if (!field.isMutable()) {
                 this.immutableFields.add(field);
+            }
             this.fields.add(field);
 
             return (B) this;
