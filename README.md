@@ -6,18 +6,29 @@ Due to this being in early stages of development, semantic versioning convention
 ## Gradle Setup
 *Don't reinvent the wheel, add it to your build.gradle!*
 
-To add it to your `build.gradle`, first add the following code to the `repositories` section to load my maven repository:
+To add it to your gradle script, first add the following code to the `repositories` block to load my maven repository:
 
+`build.gradle` [for Groovy build scripts]
 ```groovy
 maven {
     name 'Harley O\'Connor Maven'
-    url 'http://harleyoconnor.com/maven/'
-    allowInsecureProtocol = true
+    url 'https://harleyoconnor.com/maven/'
 }
 ```
 
-Next, add the following to your `dependencies` section to load java utilities:
+`build.gradle.kts` [for Kotlin build scripts]
+```kotlin
+maven("https://harleyoconnor.com/maven/")
+```
 
+Next, add the following to your `dependencies` block to load SerDes itself:
+
+`build.gradle` [for Groovy build scripts]
 ```groovy
 implementation group: 'com.harleyoconnor.serdes', name: 'SerDes', version: '0.0.6'
+```
+
+`build.gradle.kts` [for Kotlin build scripts]
+```kotlin
+implementation(group = "com.harleyoconnor.serdes", name = "SerDes", version = "0.0.6")
 ```

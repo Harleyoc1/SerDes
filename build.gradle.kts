@@ -11,9 +11,7 @@ version = property("version")
 
 repositories {
     mavenCentral()
-    maven("http://harleyoconnor.com/maven/") {
-        this.isAllowInsecureProtocol = true
-    }
+    maven("https://harleyoconnor.com/maven/")
 }
 
 dependencies {
