@@ -1,16 +1,18 @@
 package com.harleyoconnor.serdes.field;
 
+import com.harleyoconnor.javautilities.convention.NamingConvention;
 import com.harleyoconnor.serdes.SerDes;
 import com.harleyoconnor.serdes.SerDesRegistry;
 import com.harleyoconnor.serdes.SerDesable;
 import com.harleyoconnor.serdes.annotation.Name;
+import com.harleyoconnor.serdes.annotation.Naming;
 import com.harleyoconnor.serdes.annotation.Primary;
 import com.harleyoconnor.serdes.annotation.Unique;
 import com.harleyoconnor.serdes.database.Database;
+import com.harleyoconnor.serdes.exception.IllegalElementException;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -114,7 +116,8 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      * @return The SQL declaration for this {@link Field}.
      */
     default String getSQLDeclaration() {
-        return this.getName() + " " + this.getSQLDataType() + (this.isUnique() ? " unique " : " ") +
+        return this.getName() + " " + this.getSQLDataType() +
+                (this.isUnique() ? " unique " : " ") +
                 (this.isNullable() ? "" : "not null");
     }
 
@@ -143,11 +146,9 @@ public interface Field<P extends SerDesable<P, ?>, T> {
 
     @SuppressWarnings("unchecked")
     static <P extends SerDesable<P, ?>, T> Field<P, T> from(java.lang.reflect.Field field) {
-        final var name = Arrays.stream(field.getAnnotations())
-                .filter(Name.class::isInstance)
-                .findFirst()
-                .map(annotation -> ((Name) annotation).value())
-                .orElse(field.getName());
+        field.setAccessible(true);
+
+        final var name = fieldName(field);
 
         final var declaringClass = (Class<P>) field.getDeclaringClass();
         final var fieldType = (Class<T>) field.getType();
@@ -198,6 +199,42 @@ public interface Field<P extends SerDesable<P, ?>, T> {
                 getter,
                 setter
         );
+    }
+
+    private static String fieldName(final java.lang.reflect.Field field) {
+        {
+            final Name nameAnnotation = field.getAnnotation(Name.class);
+
+            if (nameAnnotation != null) {
+                return nameAnnotation.value();
+            }
+        }
+
+        final Naming namingAnnotation = namingAnnotation(field);
+
+        if (namingAnnotation == null) {
+            return field.getName();
+        }
+
+        return NamingConvention.get(namingAnnotation.value())
+                .map(namingConvention -> NamingConvention.CAMEL_CASE.convertTo(namingConvention, field.getName()))
+                .orElseThrow(() -> new IllegalElementException("@Naming annotation value \"" + namingAnnotation.value() +
+                        "\" is not a registered naming convention."));
+    }
+
+    @Nullable
+    private static Naming namingAnnotation(final java.lang.reflect.Field field) {
+        Naming namingAnnotation = field.getAnnotation(Naming.class);
+
+        if (namingAnnotation == null) {
+            namingAnnotation = field.getDeclaringClass().getAnnotation(Naming.class);
+
+            if (namingAnnotation == null) {
+                namingAnnotation = field.getDeclaringClass().getPackage().getAnnotation(Naming.class);
+            }
+        }
+
+        return namingAnnotation;
     }
 
 }

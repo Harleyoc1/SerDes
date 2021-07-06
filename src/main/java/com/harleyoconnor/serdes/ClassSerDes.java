@@ -1,8 +1,6 @@
 package com.harleyoconnor.serdes;
 
 import com.google.common.collect.ImmutableSet;
-import com.harleyoconnor.serdes.annotation.Name;
-import com.harleyoconnor.serdes.annotation.Primary;
 import com.harleyoconnor.serdes.database.Database;
 import com.harleyoconnor.serdes.field.*;
 import com.harleyoconnor.serdes.util.CommonCollectors;
@@ -12,7 +10,6 @@ import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -161,6 +158,14 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
 
             return builder.build();
         });
+    }
+
+    public static <T extends SerDesable<T, PK>, PK> T deserialise(final Class<T> tClass, final PK primaryKey) {
+        return getOrCreate(tClass).deserialise(primaryKey);
+    }
+
+    public static <T extends SerDesable<T, PK>, PK> T deserialise(final Class<T> tClass, final Database database, final PK primaryKey) {
+        return getOrCreate(tClass).deserialise(database, primaryKey);
     }
 
 }

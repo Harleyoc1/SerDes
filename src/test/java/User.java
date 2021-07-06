@@ -1,15 +1,15 @@
 import com.harleyoconnor.serdes.ClassSerDes;
-import com.harleyoconnor.serdes.IndexedSerDesable;
 import com.harleyoconnor.serdes.SerDes;
 import com.harleyoconnor.serdes.SerDesable;
-import com.harleyoconnor.serdes.annotation.Name;
+import com.harleyoconnor.serdes.annotation.Naming;
 import com.harleyoconnor.serdes.annotation.Primary;
 import com.harleyoconnor.serdes.field.PrimaryField;
 
 /**
  * @author Harley O'Connor
  */
-public record User (@Name("FirstName") String firstName,
+@Naming("PascalCase")
+public record User (String firstName,
                     String surname,
                     @Primary String username
 ) implements SerDesable<User, String> {
