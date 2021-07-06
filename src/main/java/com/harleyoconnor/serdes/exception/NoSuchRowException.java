@@ -1,5 +1,6 @@
 package com.harleyoconnor.serdes.exception;
 
+import java.io.Serial;
 import java.sql.SQLException;
 
 /**
@@ -8,6 +9,9 @@ import java.sql.SQLException;
  * @author Harley O'Connor
  */
 public final class NoSuchRowException extends SQLException {
+
+    @Serial
+    private static final long serialVersionUID = -35260591072781988L;
 
     /**
      * Constructs a {@link NoSuchRowException} without a detail message.

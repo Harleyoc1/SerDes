@@ -1,5 +1,6 @@
 package com.harleyoconnor.serdes.exception;
 
+import java.io.Serial;
 import java.sql.SQLException;
 
 /**
@@ -8,6 +9,9 @@ import java.sql.SQLException;
  * @author Harley O'Connor
  */
 public final class NoSuchColumnException extends SQLException {
+
+    @Serial
+    private static final long serialVersionUID = -1399208132131786078L;
 
     /**
      * Constructs a {@link NoSuchColumnException} without a detail message.

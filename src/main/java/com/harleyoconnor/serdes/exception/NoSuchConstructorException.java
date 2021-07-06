@@ -1,11 +1,16 @@
 package com.harleyoconnor.serdes.exception;
 
+import java.io.Serial;
+
 /**
  * Thrown when a particular {@link java.lang.reflect.Constructor} cannot be found.
  *
  * @author Harley O'Connor
  */
 public final class NoSuchConstructorException extends NoSuchMethodException {
+
+    @Serial
+    private static final long serialVersionUID = -4014515404662765265L;
 
     /**
      * Constructs a {@link NoSuchMethodException} without a detail message.
