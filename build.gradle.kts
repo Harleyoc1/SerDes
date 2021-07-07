@@ -49,8 +49,8 @@ publishing {
                 }
                 developers {
                     developer {
-                        this.id.set("harleyoconnor")
-                        this.name.set("Harley O\"Connor")
+                        this.id.set("Harleyoc1")
+                        this.name.set("Harley O'Connor")
                         this.email.set("harleyoc1@gmail.com")
                     }
                 }
@@ -61,5 +61,18 @@ publishing {
                 }
             }
         }
+    }
+    if (hasProperty("harleyOConnorMavenUsername") && hasProperty("harleyOConnorMavenPassword")) {
+        repositories {
+            maven {
+                this.url = uri("https://harleyoconnor.com/maven")
+                credentials {
+                    this.username = property("harleyOConnorMavenUsername")
+                    this.password = property("harleyOConnorMavenPassword")
+                }
+            }
+        }
+    } else {
+        logger.log(LogLevel.WARN, "Credentials for maven not detected; it will be disabled.")
     }
 }
