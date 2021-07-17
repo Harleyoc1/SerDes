@@ -7,6 +7,7 @@ import com.harleyoconnor.serdes.util.CommonCollectors;
 import com.harleyoconnor.serdes.util.ResultSetConversions;
 
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -145,6 +146,26 @@ public final class ClassSerDes<T extends SerDesable<T, PK>, PK> extends Abstract
             return new Builder<>(type, tableName);
         }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends SerDesable<T, PK>, PK> SerDes<T, PK> getOrCreate(final Class<T> tClass) {
+        return (SerDes<T, PK>) SerDesRegistry.get(tClass).orElseGet(() -> {
+            final var builder = new Builder<>(tClass, tClass.getSimpleName());
+
+            Arrays.stream(tClass.getDeclaredFields()).forEach(field ->
+                    builder.field(Field.from(field)));
+
+            return builder.build();
+        });
+    }
+
+    public static <T extends SerDesable<T, PK>, PK> T deserialise(final Class<T> tClass, final PK primaryKey) {
+        return getOrCreate(tClass).deserialise(primaryKey);
+    }
+
+    public static <T extends SerDesable<T, PK>, PK> T deserialise(final Class<T> tClass, final Database database, final PK primaryKey) {
+        return getOrCreate(tClass).deserialise(database, primaryKey);
     }
 
 }

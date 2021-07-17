@@ -1,12 +1,21 @@
 package com.harleyoconnor.serdes.field;
 
+import com.harleyoconnor.javautilities.convention.NamingConvention;
 import com.harleyoconnor.serdes.SerDes;
 import com.harleyoconnor.serdes.SerDesRegistry;
 import com.harleyoconnor.serdes.SerDesable;
+import com.harleyoconnor.serdes.annotation.Name;
+import com.harleyoconnor.serdes.annotation.Naming;
+import com.harleyoconnor.serdes.annotation.Primary;
+import com.harleyoconnor.serdes.annotation.Unique;
 import com.harleyoconnor.serdes.database.Database;
+import com.harleyoconnor.serdes.exception.IllegalElementException;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Modifier;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Represents a {@code field}, both in the sense of a Java {@link Class} field and an SQL
@@ -107,7 +116,8 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      * @return The SQL declaration for this {@link Field}.
      */
     default String getSQLDeclaration() {
-        return this.getName() + " " + this.getSQLDataType() + (this.isUnique() ? " unique " : " ") +
+        return this.getName() + " " + this.getSQLDataType() +
+                (this.isUnique() ? " unique " : " ") +
                 (this.isNullable() ? "" : "not null");
     }
 
@@ -132,6 +142,99 @@ public interface Field<P extends SerDesable<P, ?>, T> {
      */
     default Field<P, T> set (Database database, P object, @Nullable T newValue) {
         throw new UnsupportedOperationException("Cannot set Field for Field implementation '" + this.getClass().getSimpleName() + "'.");
+    }
+
+    @SuppressWarnings("unchecked")
+    static <P extends SerDesable<P, ?>, T> Field<P, T> from(java.lang.reflect.Field field) {
+        field.setAccessible(true);
+
+        final var name = fieldName(field);
+
+        final var declaringClass = (Class<P>) field.getDeclaringClass();
+        final var fieldType = (Class<T>) field.getType();
+        final var unique = field.isAnnotationPresent(Unique.class);
+        final var nullable = field.isAnnotationPresent(Nullable.class);
+
+        final Function<P, T> getter = obj -> {
+            try {
+                return (T) field.get(obj);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
+        final BiConsumer<P, T> setter = (obj, value) -> {
+            try {
+                field.set(obj, value);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        if (field.isAnnotationPresent(Primary.class)) {
+            return new PrimaryField<>(
+                    name,
+                    declaringClass,
+                    fieldType,
+                    getter
+            );
+        }
+
+        if (Modifier.isFinal(field.getModifiers())) {
+            return new ImmutableField<>(
+                    name,
+                    declaringClass,
+                    fieldType,
+                    unique,
+                    nullable,
+                    getter
+            );
+        }
+
+        return new MutableField<>(
+                name,
+                declaringClass,
+                fieldType,
+                unique,
+                nullable,
+                getter,
+                setter
+        );
+    }
+
+    private static String fieldName(final java.lang.reflect.Field field) {
+        {
+            final Name nameAnnotation = field.getAnnotation(Name.class);
+
+            if (nameAnnotation != null) {
+                return nameAnnotation.value();
+            }
+        }
+
+        final Naming namingAnnotation = namingAnnotation(field);
+
+        if (namingAnnotation == null) {
+            return field.getName();
+        }
+
+        return NamingConvention.get(namingAnnotation.value())
+                .map(namingConvention -> NamingConvention.CAMEL_CASE.convertTo(namingConvention, field.getName()))
+                .orElseThrow(() -> new IllegalElementException("@Naming annotation value \"" + namingAnnotation.value() +
+                        "\" is not a registered naming convention."));
+    }
+
+    @Nullable
+    private static Naming namingAnnotation(final java.lang.reflect.Field field) {
+        Naming namingAnnotation = field.getAnnotation(Naming.class);
+
+        if (namingAnnotation == null) {
+            namingAnnotation = field.getDeclaringClass().getAnnotation(Naming.class);
+
+            if (namingAnnotation == null) {
+                namingAnnotation = field.getDeclaringClass().getPackage().getAnnotation(Naming.class);
+            }
+        }
+
+        return namingAnnotation;
     }
 
 }

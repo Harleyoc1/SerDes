@@ -1,5 +1,7 @@
 package com.harleyoconnor.serdes.util;
 
+import com.harleyoconnor.javautilities.util.Primitive;
+
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,7 +74,7 @@ public enum DataTypeConversion {
      */
     public static Optional<DataTypeConversion> getFor(final Class<?> javaClass) {
         // Convert the class to its primitive type if one exists.
-        final Class<?> finalClass = PrimitiveClass.convert(javaClass);
+        final Class<?> finalClass = Primitive.fromOrSelf(javaClass);
 
         // Filter through all conversions and try to find the first that matches the given class.
         return Stream.of(DataTypeConversion.values()).filter(dataTypeConversion ->
